@@ -29,6 +29,12 @@ This package contains a ROS2 node that acts as a WebSocket server. It accepts JS
    source install/setup.bash
    ```
 
+4. Run the tests:
+   ```bash
+   colcon test --packages-select phone_imu_bridge
+   colcon test-result --verbose
+   ```
+
 ## Usage
 
 Run the server node:
