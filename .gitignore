@@ -1,0 +1,42 @@
+# ROS2 colcon workspace build artifacts
+build/
+install/
+log/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Python virtual environments
+venv/
+env/
+
+# IDE files
+.vscode/
+
+# Compiled files
+*.o
+*.a
+*.lib
+*.dylib
+*.dll
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Test results
+*.gcov
+*.gcda
+*.gcno

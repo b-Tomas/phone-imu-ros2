@@ -1,19 +1,22 @@
 import asyncio
 import json
 import math
+import threading
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Imu
-from geometry_msgs.msg import Quaternion
 import websockets
-import threading
+
+PORT = 5000
+
 
 class ImuServerNode(Node):
     def __init__(self):
         super().__init__('imu_server_node')
         self.publisher_ = self.create_publisher(Imu, 'phone_imu', 10)
-        self.get_logger().info('IMU Server Node started. Listening on 0.0.0.0:5000')
-        
+        self.get_logger().info(f'IMU Server Node started. Listening on 0.0.0.0:{PORT}')
+
         # Start WebSocket server in a separate thread
         self.server_thread = threading.Thread(target=self.start_server_thread, daemon=True)
         self.server_thread.start()
@@ -21,7 +24,8 @@ class ImuServerNode(Node):
     def start_server_thread(self):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        start_server = websockets.serve(self.handle_connection, "0.0.0.0", 5000)
+        # TODO: Make port customizable
+        start_server = websockets.serve(self.handle_connection, '0.0.0.0', PORT)
         loop.run_until_complete(start_server)
         loop.run_forever()
 
@@ -42,29 +46,27 @@ class ImuServerNode(Node):
     def publish_imu(self, data):
         msg = Imu()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = "phone_imu_link"
+        msg.header.frame_id = 'phone_imu_link'
 
         # Covariance matrices. They are published for algothimns to use, but we can't
         # get them from the phone IMU.
-        # 1e-6 for diagonal elements is a common default for "trustworthy" sensors
+        # 1e-6 for diagonal elements is a common default for 'trustworthy' sensors
         # 0.01 might be more realistic for a phone
-        # TODO: Make this customizable
+        # TODO: Make covariance values customizable
         cov_val = 0.01
         msg.linear_acceleration_covariance = [
-            cov_val, 0.0, 0.0,
-            0.0, cov_val, 0.0,
-            0.0, 0.0, cov_val
+            cov_val,
+            0.0,
+            0.0,
+            0.0,
+            cov_val,
+            0.0,
+            0.0,
+            0.0,
+            cov_val,
         ]
-        msg.angular_velocity_covariance = [
-            cov_val, 0.0, 0.0,
-            0.0, cov_val, 0.0,
-            0.0, 0.0, cov_val
-        ]
-        msg.orientation_covariance = [
-            cov_val, 0.0, 0.0,
-            0.0, cov_val, 0.0,
-            0.0, 0.0, cov_val
-        ]
+        msg.angular_velocity_covariance = [cov_val, 0.0, 0.0, 0.0, cov_val, 0.0, 0.0, 0.0, cov_val]
+        msg.orientation_covariance = [cov_val, 0.0, 0.0, 0.0, cov_val, 0.0, 0.0, 0.0, cov_val]
 
         if 'accel' in data:
             # Convert from g to m/s^2
@@ -85,7 +87,7 @@ class ImuServerNode(Node):
             alpha = float(data['orientation'].get('alpha', 0))
             beta = float(data['orientation'].get('beta', 0))
             gamma = float(data['orientation'].get('gamma', 0))
-            
+
             q = self.euler_to_quaternion(alpha, beta, gamma)
             msg.orientation.x = q[0]
             msg.orientation.y = q[1]
@@ -94,22 +96,31 @@ class ImuServerNode(Node):
         else:
             # Default identity quaternion
             msg.orientation.w = 1.0
-        
+
         self.publisher_.publish(msg)
 
     def euler_to_quaternion(self, alpha, beta, gamma):
         # Convert Euler angles to Quaternion
-        
+
         roll = beta
         pitch = gamma
         yaw = alpha
 
-        qx = math.sin(roll/2) * math.cos(pitch/2) * math.cos(yaw/2) - math.cos(roll/2) * math.sin(pitch/2) * math.sin(yaw/2)
-        qy = math.cos(roll/2) * math.sin(pitch/2) * math.cos(yaw/2) + math.sin(roll/2) * math.cos(pitch/2) * math.sin(yaw/2)
-        qz = math.cos(roll/2) * math.cos(pitch/2) * math.sin(yaw/2) - math.sin(roll/2) * math.sin(pitch/2) * math.cos(yaw/2)
-        qw = math.cos(roll/2) * math.cos(pitch/2) * math.cos(yaw/2) + math.sin(roll/2) * math.sin(pitch/2) * math.sin(yaw/2)
+        qx = math.sin(roll / 2) * math.cos(pitch / 2) * math.cos(yaw / 2) - math.cos(
+            roll / 2
+        ) * math.sin(pitch / 2) * math.sin(yaw / 2)
+        qy = math.cos(roll / 2) * math.sin(pitch / 2) * math.cos(yaw / 2) + math.sin(
+            roll / 2
+        ) * math.cos(pitch / 2) * math.sin(yaw / 2)
+        qz = math.cos(roll / 2) * math.cos(pitch / 2) * math.sin(yaw / 2) - math.sin(
+            roll / 2
+        ) * math.sin(pitch / 2) * math.cos(yaw / 2)
+        qw = math.cos(roll / 2) * math.cos(pitch / 2) * math.cos(yaw / 2) + math.sin(
+            roll / 2
+        ) * math.sin(pitch / 2) * math.sin(yaw / 2)
 
         return [qx, qy, qz, qw]
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -121,6 +132,7 @@ def main(args=None):
     finally:
         node.destroy_node()
         rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

@@ -17,6 +17,10 @@ ROS2 Package and React Native companion app to stream IMU data from an Android o
   </tr>
 </table>
 
+> [!IMPORTANT]
+> Using an entire general purpose mobile computer as an IMU device is the opposite of power/cost/space efficiency. IMU modules capable of better performance can be found for very cheap.
+> This is a simple project for those looking to turn in their homework within a couple of hours, or for general playing around.
+
 ## Overview
 
 This repository contains two main components:
@@ -25,9 +29,9 @@ This repository contains two main components:
 
 ## Compatibility
 
-- **Mobile**: Works on **Android** and **iOS** thanks to React Native (Expo). Tested with NodeJS v24.5 (current LTS).
+- **Mobile**: Works on **Android** and **iOS** thanks to React Native (Expo). Tested with NodeJS v24.5 (current LTS) on Android 16 and iOS 15.8.
 > [!NOTE]
-> WebSockets (TCP) are used instead of UDP to ensure compatibility with Expo Go without needing native code changes. This should introduce a negligible latency overhead compared to raw UDP but allows for easy cross-platform deployment.
+> WebSockets (TCP) are used instead of UDP to ensure cross platform compatibility without requiring native code. Please note that operating system APIs don't usually allow high polling rates either.
 - **ROS2**: Tested on **ROS2 Jazzy**. Likely compatible with Humble/Iron/Rolling as it uses standard messages and Python client libraries.
 
 ## Installation as a submodule
@@ -106,3 +110,12 @@ The app sends JSON data:
 The ROS2 node publishes to `/phone_imu` (`sensor_msgs/msg/Imu`).
 - **Frame ID**: `phone_imu_link`
 - **Covariance**: Fixed diagonal values (0.01).
+
+## Missing features
+
+...that may eventually be implemented
+
+- Customizable ROS parameters and sensor covariance
+- UDP support
+- Customizable polling frequency
+- Camera support
