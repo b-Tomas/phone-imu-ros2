@@ -1,6 +1,21 @@
 # phone-imu-ros2
 
-ROS2 Package and React Native App to stream IMU data from an Android or iOS phone to a ROS2 robot.
+ROS2 Package and React Native companion app to stream IMU data from an Android or iOS phone to ROS2.
+
+<table>
+  <tr>
+    <td>
+      <img src="https://github.com/user-attachments/assets/feec1eb1-c4b0-4d35-ade2-d87be82e32ea"
+           width="300" />
+    </td>
+    <td>
+      <video src="https://github.com/user-attachments/assets/2c4f0a03-51a3-41e2-bd75-55e1a60afeab"
+             height="960"
+             controls>
+      </video>
+    </td>
+  </tr>
+</table>
 
 ## Overview
 
